@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hackathon Scouter Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:    #185FA5;
+    --green:   #0F6E56;
+    --amber:   #854F0B;
+    --purple:  #6B3FA0;
+    --bg:      #F0F4F9;
+    --card:    #FFFFFF;
+    --text:    #1A1A2E;
+    --muted:   #6B7280;
+    --border:  #E2E8F0;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 16px 60px;
+    color: var(--text);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  h1 span { color: var(--blue); }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Table grid selector */
+  .selector-card {
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 28px;
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .selector-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .table-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+
+  .tbl-btn {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: #F8FAFC;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    position: relative;
+  }
+
+  .tbl-btn:hover {
+    border-color: var(--blue);
+    background: #EBF3FC;
+    color: var(--blue);
+    transform: translateY(-1px);
+  }
+
+  .tbl-btn.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(24,95,165,0.35);
+    transform: translateY(-2px);
+  }
+
+  .tbl-btn.seven::after {
+    content: '7';
+    font-size: 8px;
+    font-weight: 700;
+    background: var(--purple);
+    color: #fff;
+    border-radius: 4px;
+    padding: 1px 4px;
+    position: absolute;
+    top: 4px; right: 4px;
+  }
+
+  /* Result panel */
+  .result-panel {
+    width: 100%;
+    max-width: 520px;
+    display: none;
+    animation: slideUp 0.25s ease;
+  }
+
+  .result-panel.visible { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .result-header span { color: var(--blue); }
+
+  .cards-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .visit-card {
+    border-radius: 14px;
+    padding: 20px 18px;
+    border: 1.5px solid transparent;
+  }
+
+  .visit-card.pair-a {
+    background: #EAF5F1;
+    border-color: #B2DDD3;
+  }
+  .visit-card.pair-b {
+    background: #FEF3E2;
+    border-color: #F5D9A8;
+  }
+  .visit-card.solo {
+    background: #F3EBF9;
+    border-color: #D4B8EE;
+  }
+  .visit-card.pair-single {
+    background: #EAF5F1;
+    border-color: #B2DDD3;
+  }
+
+  .vc-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .pair-a .vc-label, .pair-single .vc-label { color: var(--green); }
+  .pair-b .vc-label { color: var(--amber); }
+  .solo .vc-label  { color: var(--purple); }
+
+  .vc-people {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .vc-tables {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .vc-table-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+
+  .pill-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  .pair-a .pill-dot, .pair-single .pill-dot { background: var(--green); }
+  .pair-b .pill-dot { background: var(--amber); }
+  .solo .pill-dot   { background: var(--purple); }
+
+  .home-card {
+    background: #EBF3FC;
+    border: 1.5px solid #B8D5F0;
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .home-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+
+  .home-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--blue);
+    margin-bottom: 2px;
+  }
+
+  .home-text span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .legend {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  .seven-note {
+    background: #F3EBF9;
+    border: 1px solid #D4B8EE;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--purple);
+    text-align: center;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Hackathon · Scouter Guide</p>
+  <h1>Where do scouters<br><span>go to vote?</span></h1>
+  <p class="subtitle">Select your table number to see which tables you need to visit & vote.</p>
+</header>
+
+<div class="selector-card">
+  <p class="selector-label">Select your table</p>
+  <div class="table-grid" id="tableGrid"></div>
+  <div class="legend" style="margin-top:16px;">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Your table</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> 7-member table</div>
+  </div>
+</div>
+
+<div class="result-panel" id="resultPanel"></div>
+
+<script>
+const N = 17;
+const SEVEN = new Set([1,2,3,4,5]);
+
+function getVisits(t) {
+  const a1 = (t % N) + 1;
+  const a2 = ((t + 1) % N) + 1;
+  const b1 = ((t + 2) % N) + 1;
+  const b2 = ((t + 3) % N) + 1;
+  return { a1, a2, b1, b2 };
+}
+
+// Build grid
+const grid = document.getElementById('tableGrid');
+for (let i = 1; i <= N; i++) {
+  const btn = document.createElement('button');
+  btn.className = 'tbl-btn' + (SEVEN.has(i) ? ' seven' : '');
+  btn.textContent = i;
+  btn.dataset.table = i;
+  btn.addEventListener('click', () => selectTable(i));
+  grid.appendChild(btn);
+}
+
+function selectTable(t) {
+  // Update active state
+  document.querySelectorAll('.tbl-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-table="${t}"]`).classList.add('active');
+
+  const { a1, a2, b1, b2 } = getVisits(t);
+  const isSeven = SEVEN.has(t);
+  const panel = document.getElementById('resultPanel');
+
+  let html = `<div class="result-header">Table <span>${t}</span></div>`;
+
+
+
+  if (isSeven) {
+    // Solo + Pair
+    html += `
+    <div class="cards-row">
+      <div class="visit-card solo">
+        <div class="vc-label">Scouter A</div>
+        <div class="vc-people">1 person goes alone</div>
+        <div class="vc-tables">
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${a1}</div>
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${a2}</div>
+        </div>
+      </div>
+      <div class="visit-card pair-single">
+        <div class="vc-label">Scouter B</div>
+        <div class="vc-people">2 people go together</div>
+        <div class="vc-tables">
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${b1}</div>
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${b2}</div>
+        </div>
+      </div>
+    </div>
+    <div class="seven-note">★ Your table has 7 members — 1 solo scouter + 1 pair instead of two pairs.</div>`;
+  } else {
+    // Pair A + Pair B
+    html += `
+    <div class="cards-row">
+      <div class="visit-card pair-a">
+        <div class="vc-label">Scouter A</div>
+        <div class="vc-people">2 people go together</div>
+        <div class="vc-tables">
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${a1}</div>
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${a2}</div>
+        </div>
+      </div>
+      <div class="visit-card pair-b">
+        <div class="vc-label">Scouter B</div>
+        <div class="vc-people">2 people go together</div>
+        <div class="vc-tables">
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${b1}</div>
+          <div class="vc-table-pill"><div class="pill-dot"></div>Table ${b2}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  panel.innerHTML = html;
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>
