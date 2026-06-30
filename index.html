@@ -15,6 +15,9 @@
     --amber:   #854F0B;
     --purple:  #6B3FA0;
     --gold:    #856404;
+    --red:     #C62828;
+    --cyan:    #0369A1;
+    --leaf:    #2E7D32;
     --bg:      #F0F4F9;
     --card:    #FFFFFF;
     --text:    #1A1A2E;
@@ -87,12 +90,18 @@
     box-shadow: 0 4px 12px rgba(24,95,165,0.35); transform: translateY(-2px);
   }
 
-  .tbl-btn.seven::after {
-    content: '7'; font-size: 8px; font-weight: 700;
-    background: var(--gold); color: #fff;
+  .tbl-btn.seven::after,
+  .tbl-btn.six::after,
+  .tbl-btn.five::after,
+  .tbl-btn.nine::after {
+    font-size: 8px; font-weight: 700; color: #fff;
     border-radius: 4px; padding: 1px 4px;
     position: absolute; top: 4px; right: 4px;
   }
+  .tbl-btn.seven::after { content: '7'; background: var(--gold); }
+  .tbl-btn.six::after   { content: '6'; background: var(--red); }
+  .tbl-btn.five::after  { content: '5'; background: var(--cyan); }
+  .tbl-btn.nine::after  { content: '9'; background: var(--leaf); }
 
   .result-panel { width: 100%; max-width: 520px; display: none; animation: slideUp 0.25s ease; }
   .result-panel.visible { display: block; }
@@ -114,6 +123,7 @@
   .visit-card { border-radius: 14px; padding: 20px 18px; border: 1.5px solid transparent; }
   .visit-card.pair-a  { background: #EAF5F1; border-color: #B2DDD3; }
   .visit-card.pair-b  { background: #FEF3E2; border-color: #F5D9A8; }
+  .visit-card.solo    { background: #F3EBF9; border-color: #D4B8EE; }
 
   .vc-label {
     font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
@@ -122,6 +132,7 @@
 
   .pair-a .vc-label { color: var(--green); }
   .pair-b .vc-label { color: var(--amber); }
+  .solo .vc-label   { color: var(--purple); }
 
   .vc-people { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
 
@@ -138,12 +149,11 @@
   .pill-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .pair-a .pill-dot { background: var(--green); }
   .pair-b .pill-dot { background: var(--amber); }
+  .solo .pill-dot   { background: var(--purple); }
 
-  .seven-note {
-    background: #FFF9E6; border: 1px solid #F5D9A8;
+  .info-note {
     border-radius: 10px; padding: 10px 14px;
-    font-size: 12px; color: var(--gold);
-    text-align: center; margin-top: 10px;
+    font-size: 12px; text-align: center; margin-top: 10px;
   }
 
   .legend { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
@@ -167,7 +177,10 @@
   <div class="table-grid" id="tableGrid"></div>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Your table</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> 7-member table (3 pitchers)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--leaf)"></div> 9 members</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> 7 members</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> 6 members</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> 5 members</div>
   </div>
 </div>
 
@@ -175,7 +188,28 @@
 
 <script>
 const N = 17;
-const SEVEN = new Set([12, 14, 15, 16]); // 7 members: 3 pitchers + 2 pairs
+const EIGHT = new Set([1,2,3,6,7,8,10,13]);
+const SEVEN = new Set([5,11,12,14,16,17]);
+const SIX   = new Set([15]);
+const FIVE  = new Set([4]);
+const NINE  = new Set([9]);
+
+function getType(t) {
+  if (FIVE.has(t)) return 'five';
+  if (SIX.has(t)) return 'six';
+  if (SEVEN.has(t)) return 'seven';
+  if (NINE.has(t)) return 'nine';
+  return 'eight';
+}
+
+function getComposition(t) {
+  const type = getType(t);
+  if (type === 'five')  return { members: 5, pitchers: 3, labelA: 'Solo', labelB: 'Solo', soloA: true, soloB: true };
+  if (type === 'six')   return { members: 6, pitchers: 3, labelA: 'Solo', labelB: 'Pair', soloA: true, soloB: false };
+  if (type === 'seven') return { members: 7, pitchers: 3, labelA: 'Pair', labelB: 'Pair', soloA: false, soloB: false };
+  if (type === 'nine')  return { members: 9, pitchers: 4, labelA: 'Pair', labelB: 'Pair', soloA: false, soloB: false };
+  return { members: 8, pitchers: 4, labelA: 'Pair', labelB: 'Pair', soloA: false, soloB: false };
+}
 
 function getVisits(t) {
   const a1 = (t % N) + 1;
@@ -189,7 +223,10 @@ function getVisits(t) {
 const grid = document.getElementById('tableGrid');
 for (let i = 1; i <= N; i++) {
   const btn = document.createElement('button');
-  btn.className = 'tbl-btn' + (SEVEN.has(i) ? ' seven' : '');
+  const type = getType(i);
+  let cls = 'tbl-btn';
+  if (type !== 'eight') cls += ' ' + type;
+  btn.className = cls;
   btn.textContent = i;
   btn.dataset.table = i;
   btn.addEventListener('click', () => selectTable(i));
@@ -201,26 +238,29 @@ function selectTable(t) {
   document.querySelector(`[data-table="${t}"]`).classList.add('active');
 
   const { a1, a2, b1, b2 } = getVisits(t);
-  const isSeven = SEVEN.has(t);
+  const comp = getComposition(t);
   const panel = document.getElementById('resultPanel');
-  const pitchers = isSeven ? 3 : 4;
 
   let html = `<div class="result-header">Table <span>${t}</span></div>`;
 
-  // Pair A + Pair B (same for both 7 and 8 member tables)
+  const cardAClass = comp.soloA ? 'solo' : 'pair-a';
+  const cardBClass = comp.soloB ? 'solo' : 'pair-b';
+  const peopleA = comp.soloA ? '1 person goes alone' : '2 people go together';
+  const peopleB = comp.soloB ? '1 person goes alone' : '2 people go together';
+
   html += `
   <div class="cards-row">
-    <div class="visit-card pair-a">
+    <div class="visit-card ${cardAClass}">
       <div class="vc-label">Scouter A</div>
-      <div class="vc-people">2 people go together</div>
+      <div class="vc-people">${peopleA}</div>
       <div class="vc-tables">
         <div class="vc-table-pill"><div class="pill-dot"></div>Table ${a1}</div>
         <div class="vc-table-pill"><div class="pill-dot"></div>Table ${a2}</div>
       </div>
     </div>
-    <div class="visit-card pair-b">
+    <div class="visit-card ${cardBClass}">
       <div class="vc-label">Scouter B</div>
-      <div class="vc-people">2 people go together</div>
+      <div class="vc-people">${peopleB}</div>
       <div class="vc-tables">
         <div class="vc-table-pill"><div class="pill-dot"></div>Table ${b1}</div>
         <div class="vc-table-pill"><div class="pill-dot"></div>Table ${b2}</div>
@@ -228,8 +268,15 @@ function selectTable(t) {
     </div>
   </div>`;
 
-  if (isSeven) {
-    html += `<div class="seven-note">★ Your table has 7 members — ${pitchers} Pitchers stay home + 2 pairs go scouting.</div>`;
+  const type = getType(t);
+  if (type === 'five') {
+    html += `<div class="info-note" style="background:#E0F2FE;border:1px solid #7DD3FC;color:#0369A1;">● Your table has 5 members — 3 Pitchers stay home, both scouters go individually.</div>`;
+  } else if (type === 'six') {
+    html += `<div class="info-note" style="background:#FCE4EC;border:1px solid #F48FB1;color:#C62828;">◆ Your table has 6 members — 3 Pitchers stay home, Scouter A goes alone, Scouter B goes as a pair.</div>`;
+  } else if (type === 'seven') {
+    html += `<div class="info-note" style="background:#FFF9E6;border:1px solid #F5D9A8;color:#856404;">★ Your table has 7 members — 3 Pitchers stay home, both scouters go as pairs.</div>`;
+  } else if (type === 'nine') {
+    html += `<div class="info-note" style="background:#E8F5E9;border:1px solid #A5D6A7;color:#2E7D32;">Your table has 9 members — 4 Pitchers stay home, both scouters go as pairs.</div>`;
   }
 
   panel.innerHTML = html;
